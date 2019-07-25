@@ -5,7 +5,7 @@ import typescript from 'rollup-plugin-typescript2';
 
 import pkg from './package.json';
 
-const dev = true;
+const dev = process.env.NODE_ENV !== 'production';
 
 const plugins = dev ? [
     resolve(),

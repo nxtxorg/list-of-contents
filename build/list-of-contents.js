@@ -1,2 +1,135 @@
-var list_of_contents=function(){"use strict";var e,t=function(){return(t=Object.assign||function(e){for(var t,n=1,r=arguments.length;n<r;n++)for(var a in t=arguments[n])Object.prototype.hasOwnProperty.call(t,a)&&(e[a]=t[a]);return e}).apply(this,arguments)};!function(e){e[e.Paragraph=1]="Paragraph",e[e.Command=2]="Command",e[e.Text=3]="Text",e[e.Block=4]="Block",e[e.Html=5]="Html",e[e.Node=6]="Node",e[e.Dictionary=11]="Dictionary",e[e.Array=12]="Array",e[e.Number=13]="Number",e[e.String=14]="String"}(e||(e={}));var n={},r={},a=[],o={},c=document.createElement("style");c.id="basic-formatting-style-block",document.head.appendChild(c);var i=c.sheet,s=[["chapter","h1"],["section","h3"],["subsection","h4"]].map(function(e){return function(e,o){n[e]=0,r=t({},n);var c={preprocessor:{},command:{}};return c.preprocessor[e]=function(n){r[e]+=1,p(e),a.push({type:e,title:n.value,numbering:t({},r)})},c.command[e]=function(e){return nxtx.html(o,null,e.value)},c}(e[0],e[1])}),u=Object.assign.apply(Object,[{}].concat(s.map(function(e){return e.preprocessor}))),l=Object.assign.apply(Object,[{}].concat(s.map(function(e){return e.command}))),p=function(e){for(var t=Object.keys(r),n=!1,a=0;a<t.length;a++)n?r[t[a]]=0:t[a]===e&&(n=!0)},m=function(e){return Object.keys(e).map(function(t){return e[t]}).join(".").replace(/[.0]+$/,"")},f=function(e,t){var n=o[e];if(!n)return console.warn("Label '"+e+"' has not been referenced"),nxtx.html("b",{class:"warning"},""+e);var r,a="";switch(n.type){case"chapter":a="chapter "+m(n.numbering);break;case"section":case"subsection":a="section "+m(n.numbering)}return t?(r=a)[0].toUpperCase()+r.substr(1):a};i.insertRule(".loc-chapter { font-size: 14pt }",0),i.insertRule(".loc-section { font-size: 13pt; padding-left: 2em }",1),i.insertRule(".loc-subsection { font-size: 12pt; padding-left: 4em }",2);var h={name:"images",preprocessors:t({label:function(e){void 0!==o[e.value]?console.warn("Attempt to redefine label '"+e.value+"' ignored"):o[e.value]=a[a.length-1]}},u),commands:t({label:function(e){return nxtx.html("span",{id:"--"+e.value,"data-label":e.value})},ref:function(e){return nxtx.html("a",{href:"#--"+e.value,"data-ref":e.value},f(e.value,!1))},Ref:function(e){return nxtx.html("a",{href:"#--"+e.value,"data-ref":e.value},f(e.value,!0))},"loc-print":function(){return[nxtx.html("h2",{class:"list-of-contents"},"List of Contents")].concat(a.map(function(e){return nxtx.html("div",{class:"loc-"+e.type},m(e.numbering)+" "+e.title)}),[{type:e.Command,name:"pagebreak",args:[]}])}},l),hooks:{prerender:function(){r=t({},n),a=[],o={}}}};return nxtx&&nxtx.registerPackage(h),nxtx}();
+var list_of_contents = (function () {
+    'use strict';
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
+
+    var NodeType;
+    (function (NodeType) {
+        NodeType[NodeType["Paragraph"] = 1] = "Paragraph";
+        NodeType[NodeType["Command"] = 2] = "Command";
+        NodeType[NodeType["Text"] = 3] = "Text";
+        NodeType[NodeType["Block"] = 4] = "Block";
+        NodeType[NodeType["Html"] = 5] = "Html";
+        NodeType[NodeType["Node"] = 6] = "Node";
+        NodeType[NodeType["Boolean"] = 10] = "Boolean";
+        NodeType[NodeType["Dictionary"] = 11] = "Dictionary";
+        NodeType[NodeType["Array"] = 12] = "Array";
+        NodeType[NodeType["Number"] = 13] = "Number";
+        NodeType[NodeType["String"] = 14] = "String";
+    })(NodeType || (NodeType = {}));
+
+    var baseNumbering = {};
+    var numbering = {};
+    var parts = [];
+    var refs = {};
+    var style = document.createElement("style");
+    style.id = 'basic-formatting-style-block';
+    document.head.appendChild(style);
+    var sheet = style.sheet;
+    var registerPart = function (type, element) {
+        baseNumbering[type] = 0;
+        numbering = __assign({}, baseNumbering);
+        var obj = { preprocessor: {}, command: {} };
+        obj.preprocessor[type] = function (content) {
+            numbering[type] += 1;
+            resetChildrenNumbering(type);
+            parts.push({ type: type, title: content.value, numbering: __assign({}, numbering) });
+        };
+        obj.command[type] = function (content) { return nxtx.html(element, null, content.value); };
+        return obj;
+    };
+    var types = [
+        ['chapter', 'h1'],
+        ['section', 'h3'],
+        ['subsection', 'h4'],
+    ].map(function (arr) { return registerPart(arr[0], arr[1]); });
+    var preprocessors = Object.assign.apply(Object, [{}].concat(types.map(function (t) { return t.preprocessor; })));
+    var commands = Object.assign.apply(Object, [{}].concat(types.map(function (t) { return t.command; })));
+    var resetChildrenNumbering = function (type) {
+        var types = Object.keys(numbering);
+        var reset = false;
+        for (var i = 0; i < types.length; i++) {
+            if (reset)
+                numbering[types[i]] = 0;
+            else if (types[i] === type)
+                reset = true;
+        }
+    };
+    var capitalizeStr = function (str) { return str[0].toUpperCase() + str.substr(1); };
+    var formatNumbering = function (numbering) { return Object.keys(numbering).map(function (k) { return numbering[k]; }).join('.').replace(/[.0]+$/, ''); };
+    var formatRef = function (ref, capitalize) {
+        var part = refs[ref];
+        if (!part) {
+            console.warn("Label '" + ref + "' has not been referenced");
+            return nxtx.html('b', { class: "warning" }, "" + ref);
+        }
+        var result = '';
+        switch (part.type) {
+            case 'chapter':
+                result = "chapter " + formatNumbering(part.numbering);
+                break;
+            case 'section':
+            case 'subsection':
+                result = "section " + formatNumbering(part.numbering);
+                break;
+        }
+        return capitalize ? capitalizeStr(result) : result;
+    };
+    sheet.insertRule('.loc-chapter { font-size: 14pt }', 0);
+    sheet.insertRule('.loc-section { font-size: 13pt; padding-left: 2em }', 1);
+    sheet.insertRule('.loc-subsection { font-size: 12pt; padding-left: 4em }', 2);
+    var pkg = {
+        name: 'images',
+        preprocessors: __assign({ 'label': function (ref) {
+                if (refs[ref.value] !== undefined)
+                    console.warn("Attempt to redefine label '" + ref.value + "' ignored");
+                else
+                    refs[ref.value] = parts[parts.length - 1];
+            } }, preprocessors),
+        commands: __assign({ 'label': function (ref) { return nxtx.html('span', { id: '--' + ref.value, 'data-label': ref.value }); }, 'ref': function (ref) { return nxtx.html('a', { href: "#--" + ref.value, 'data-ref': ref.value }, formatRef(ref.value, false)); }, 'Ref': function (ref) { return nxtx.html('a', { href: "#--" + ref.value, 'data-ref': ref.value }, formatRef(ref.value, true)); }, 'loc-print': function () {
+                var rendition = [
+                    nxtx.html('h2', { class: 'list-of-contents' }, 'List of Contents')
+                ].concat(parts.map(function (part) { return nxtx.html('div', { class: "loc-" + part.type }, formatNumbering(part.numbering) + " " + part.title); }), [
+                    { type: NodeType.Command, name: 'pagebreak', args: [] }
+                ]);
+                return rendition;
+            } }, commands),
+        hooks: {
+            prerender: function () {
+                numbering = __assign({}, baseNumbering);
+                parts = [];
+                refs = {};
+            }
+        }
+    };
+    if (nxtx)
+        nxtx.registerPackage(pkg);
+
+    return nxtx;
+
+}());
 //# sourceMappingURL=list-of-contents.js.map

@@ -2,7 +2,7 @@
     Author: Malte Rosenbjerg
     License: MIT */
 
-import {CommandResult, Node, NodeType, Package, INxtx, CommandFunction} from '../nxtx';
+import {CommandResult, Node, NodeType, Package, INxtx, CommandFunction} from '../nxtx-interface';
 declare const nxtx: INxtx;
 
 let baseNumbering = {};
@@ -59,8 +59,6 @@ const formatRef = (ref, capitalize) => {
             result = `chapter ${formatNumbering(part.numbering)}`;
             break;
         case 'section':
-            result = `section ${formatNumbering(part.numbering)}`;
-            break;
         case 'subsection':
             result = `section ${formatNumbering(part.numbering)}`;
             break;
